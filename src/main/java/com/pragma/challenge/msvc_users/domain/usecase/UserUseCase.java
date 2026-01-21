@@ -50,7 +50,8 @@ public class UserUseCase implements IUserServicePort {
 
     @Override
     public boolean isOwner(Long userId) {
-        return false;
+        User user = findById(userId);
+        return user.getRole().getName().equals(RoleName.OWNER);
     }
 
     private User saveUser(User user, RoleName rolename){
