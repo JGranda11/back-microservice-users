@@ -1,8 +1,6 @@
 package com.pragma.challenge.msvc_users.infrastructure.configuration.advisor;
 
-import com.pragma.challenge.msvc_users.domain.exception.EntityAlreadyExistsException;
-import com.pragma.challenge.msvc_users.domain.exception.EntityNotFoundException;
-import com.pragma.challenge.msvc_users.domain.exception.UnderAgedUserException;
+import com.pragma.challenge.msvc_users.domain.exception.*;
 import com.pragma.challenge.msvc_users.infrastructure.configuration.advisor.response.ExceptionResponse;
 import com.pragma.challenge.msvc_users.infrastructure.util.ExceptionResponseBuilder;
 import org.springframework.http.HttpStatus;
@@ -26,6 +24,21 @@ public class ExceptionAdvisor {
 
     @ExceptionHandler(UnderAgedUserException.class)
     public ResponseEntity<ExceptionResponse> handleUnderAgedUser(UnderAgedUserException e){
+        return ExceptionResponseBuilder.buildResponse(e, HttpStatus.CONFLICT);
+    }
+
+    @ExceptionHandler(UserNotRegisteredException.class)
+    public ResponseEntity<ExceptionResponse> handleUserNotRegistered(UserNotRegisteredException e){
+        return ExceptionResponseBuilder.buildResponse(e, HttpStatus.CONFLICT);
+    }
+
+    @ExceptionHandler(ExpiredTokenException.class)
+    public ResponseEntity<ExceptionResponse> handleExpiredToken(ExpiredTokenException e){
+        return ExceptionResponseBuilder.buildResponse(e, HttpStatus.CONFLICT);
+    }
+
+    @ExceptionHandler(InvalidTokenException.class)
+    public ResponseEntity<ExceptionResponse> handleInvalidToken(InvalidTokenException e){
         return ExceptionResponseBuilder.buildResponse(e, HttpStatus.CONFLICT);
     }
 }

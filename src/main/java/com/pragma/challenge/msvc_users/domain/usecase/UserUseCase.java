@@ -8,6 +8,7 @@ import com.pragma.challenge.msvc_users.domain.model.Role;
 import com.pragma.challenge.msvc_users.domain.model.User;
 import com.pragma.challenge.msvc_users.domain.spi.IRolePersistencePort;
 import com.pragma.challenge.msvc_users.domain.spi.IUserPersistencePort;
+import com.pragma.challenge.msvc_users.domain.spi.security.IPasswordEncoderPort;
 import com.pragma.challenge.msvc_users.domain.util.enums.RoleName;
 
 import java.time.LocalDate;
@@ -17,11 +18,12 @@ public class UserUseCase implements IUserServicePort {
 
     private final IUserPersistencePort userPersistencePort;
     private final IRolePersistencePort rolePersistencePort;
+    private final IPasswordEncoderPort passwordEncoderPort;
 
-    public UserUseCase(IUserPersistencePort userPersistencePort,
-                       IRolePersistencePort rolePersistencePort) {
+    public UserUseCase(IUserPersistencePort userPersistencePort, IRolePersistencePort rolePersistencePort, IPasswordEncoderPort passwordEncoderPort) {
         this.userPersistencePort = userPersistencePort;
         this.rolePersistencePort = rolePersistencePort;
+        this.passwordEncoderPort = passwordEncoderPort;
     }
 
     @Override
@@ -63,6 +65,7 @@ public class UserUseCase implements IUserServicePort {
             rolename.name());
         }
         user.setRole(role);
+        encryptPassword(user);
         validateUser(user);
         return userPersistencePort.saveUser(user);
     }
@@ -83,5 +86,11 @@ public class UserUseCase implements IUserServicePort {
         if (user.getBirthdate().until(LocalDate.now(), ChronoUnit.YEARS) < 18L) {
             throw new UnderAgedUserException();
         }
+    }
+
+    private User encryptPassword(User user){
+        String passwordEncode = passwordEncoderPort.encode(user.getPassword());
+        user.setPassword(passwordEncode);
+        return user;
     }
 }

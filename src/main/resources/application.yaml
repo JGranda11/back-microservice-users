@@ -28,3 +28,13 @@ logging:
   level:
     org.hibernate.SQL: debug
     org.hibernate.type.descriptor.sql.BasicBinder: trace
+
+jwt:
+  secret_key: e6JZY/j6nCYnVhABekGIkOB2OtkPsvXCbcYrhKp+z+g=
+  expiration_time: 3600000
+
+
+
+allowed-origins:
+  http://localhost:3000/,
+  http://localhost:5173/,

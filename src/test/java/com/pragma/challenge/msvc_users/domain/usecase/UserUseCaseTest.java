@@ -7,6 +7,7 @@ import com.pragma.challenge.msvc_users.domain.model.Role;
 import com.pragma.challenge.msvc_users.domain.model.User;
 import com.pragma.challenge.msvc_users.domain.spi.IRolePersistencePort;
 import com.pragma.challenge.msvc_users.domain.spi.IUserPersistencePort;
+import com.pragma.challenge.msvc_users.domain.spi.security.IPasswordEncoderPort;
 import com.pragma.challenge.msvc_users.domain.util.enums.RoleName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -29,6 +30,9 @@ public class UserUseCaseTest {
 
     @Mock
     private IRolePersistencePort rolePersistencePort;
+
+    @Mock
+    private IPasswordEncoderPort passwordEncoderPort;
 
     @InjectMocks
     private UserUseCase userUseCase;
@@ -77,6 +81,7 @@ public class UserUseCaseTest {
             .build();
 
 
+
     @Test
     void createOwner() {
         // Arrange
@@ -84,13 +89,15 @@ public class UserUseCaseTest {
         when(userPersistencePort.findByIdentityDocument(USER_IDENTITY_DOCUMENT)).thenReturn(null);
         when(userPersistencePort.saveUser(any(User.class))).thenReturn(savedUser);
         when(rolePersistencePort.findByName(any())).thenReturn(ownerRole);
+        when(passwordEncoderPort.encode(any(String.class)))
+                .thenReturn("encrypted-password");
 
         // Act
         User savedUser = userUseCase.createOwner(user);
 
-        verify(userPersistencePort).findByEmail(USER_EMAIL);
-        verify(userPersistencePort).findByIdentityDocument(USER_IDENTITY_DOCUMENT);
+        verify(passwordEncoderPort).encode(USER_PASSWORD);
         verify(userPersistencePort).saveUser(any(User.class));
+
         assertEquals(ROLE_NAME, savedUser.getRole().getName());
         assertEquals(USER_EMAIL, savedUser.getEmail());
     }
