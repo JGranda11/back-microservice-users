@@ -20,12 +20,12 @@ public class UserHandlerImpl implements UserHandler {
     private final IUserServicePort userServicePort;
     private final UserRequestMapper userRequestMapper;
     private final UserResponseMapper userResponseMapper;
-    private final PasswordEncoder passwordEncoder;
+
 
 
     @Override
     public UserResponse createOwner(UserRequest owner) {
-        User user = encryptPassword(owner);
+        User user = userRequestMapper.toDomain(owner);
         return userResponseMapper.toResponse(
                 userServicePort.createOwner(user)
         );
@@ -40,13 +40,9 @@ public class UserHandlerImpl implements UserHandler {
 
     @Override
     public UserResponse createCustomer(UserRequest client) {
-        User user = encryptPassword(client);
-        return userResponseMapper.toResponse(userServicePort.createCustomer(user));
+        User user = userRequestMapper.toDomain(client);
+        return userResponseMapper.toResponse(
+                userServicePort.createCustomer(user));
     }
 
-    private User encryptPassword(UserRequest request){
-        User user = userRequestMapper.toDomain(request);
-        user.setPassword(passwordEncoder.encode(request.getPassword()));
-        return user;
-    }
 }
