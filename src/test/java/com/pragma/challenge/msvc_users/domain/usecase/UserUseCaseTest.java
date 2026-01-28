@@ -2,11 +2,13 @@ package com.pragma.challenge.msvc_users.domain.usecase;
 
 import com.pragma.challenge.msvc_users.domain.exception.EntityAlreadyExistsException;
 import com.pragma.challenge.msvc_users.domain.exception.EntityNotFoundException;
+import com.pragma.challenge.msvc_users.domain.exception.ErrorRegisteringEmployeeException;
 import com.pragma.challenge.msvc_users.domain.exception.UnderAgedUserException;
 import com.pragma.challenge.msvc_users.domain.model.Role;
 import com.pragma.challenge.msvc_users.domain.model.User;
 import com.pragma.challenge.msvc_users.domain.spi.IRolePersistencePort;
 import com.pragma.challenge.msvc_users.domain.spi.IUserPersistencePort;
+import com.pragma.challenge.msvc_users.domain.spi.RestaurantPersistencePort;
 import com.pragma.challenge.msvc_users.domain.spi.security.IPasswordEncoderPort;
 import com.pragma.challenge.msvc_users.domain.util.enums.RoleName;
 import org.junit.jupiter.api.Test;
@@ -19,8 +21,8 @@ import java.time.LocalDate;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class UserUseCaseTest {
@@ -33,6 +35,9 @@ public class UserUseCaseTest {
 
     @Mock
     private IPasswordEncoderPort passwordEncoderPort;
+
+    @Mock
+    private RestaurantPersistencePort restaurantPersistencePort;
 
     @InjectMocks
     private UserUseCase userUseCase;
@@ -50,7 +55,7 @@ public class UserUseCaseTest {
     public static final Long ROLE_ID = 3L;
     public static final RoleName ROLE_NAME = RoleName.OWNER;
     public static final String ROLE_DESCRIPTION = "Restaurant owner";
-
+    public static final Long RESTAURANT_ID = 5L;
 
     private final Role ownerRole = Role.builder()
             .id(2L)
@@ -156,6 +161,61 @@ public class UserUseCaseTest {
 
         assertThrows(UnderAgedUserException.class,
                 () -> userUseCase.createOwner(underAgeUser));
+    }
+
+    @Test
+    void createEmployee_Success() {
+        Role employeeRole = Role.builder()
+                .id(2L)
+                .name(RoleName.EMPLOYEE)
+                .build();
+
+        when(rolePersistencePort.findByName(RoleName.EMPLOYEE))
+                .thenReturn(employeeRole);
+
+        when(userPersistencePort.saveUser(any(User.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        User result = userUseCase.createEmployee(user, RESTAURANT_ID);
+
+        verify(rolePersistencePort).findByName(RoleName.EMPLOYEE);
+        verify(userPersistencePort).saveUser(any(User.class));
+        verify(restaurantPersistencePort)
+                .registerEmployeeInRestaurant(any(User.class), eq(RESTAURANT_ID));
+
+        assertEquals(RoleName.EMPLOYEE, result.getRole().getName());
+    }
+
+    @Test
+    void createEmployee_RoleNotFound() {
+        // Arrange
+        when(rolePersistencePort.findByName(RoleName.EMPLOYEE)).thenReturn(null);
+
+        // Act & Assert
+        assertThrows(EntityNotFoundException.class, () -> userUseCase.createEmployee(user,
+                3L));
+    }
+
+    @Test
+    void createEmployee_ErrorRegisteringInRestaurant() {
+        when(rolePersistencePort.findByName(RoleName.EMPLOYEE))
+                .thenReturn(Role.builder().id(2L).name(RoleName.EMPLOYEE).build());
+
+        when(userPersistencePort.saveUser(any(User.class)))
+                .thenAnswer(invocation -> {
+                    User u = invocation.getArgument(0);
+                    u.setId(USER_ID);
+                    return u;
+                });
+
+        doThrow(new RuntimeException())
+                .when(restaurantPersistencePort)
+                .registerEmployeeInRestaurant(any(User.class), anyLong());
+
+        assertThrows(ErrorRegisteringEmployeeException.class,
+                () -> userUseCase.createEmployee(user, RESTAURANT_ID));
+
+        verify(userPersistencePort).deletedById(USER_ID);
     }
 
 }

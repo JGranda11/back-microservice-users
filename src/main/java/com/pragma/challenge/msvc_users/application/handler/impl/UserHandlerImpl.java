@@ -1,9 +1,11 @@
 package com.pragma.challenge.msvc_users.application.handler.impl;
 
+import com.pragma.challenge.msvc_users.application.dto.request.EmployeeRequest;
 import com.pragma.challenge.msvc_users.application.dto.request.UserRequest;
 import com.pragma.challenge.msvc_users.application.dto.response.IsOwnerResponse;
 import com.pragma.challenge.msvc_users.application.dto.response.UserResponse;
 import com.pragma.challenge.msvc_users.application.handler.UserHandler;
+import com.pragma.challenge.msvc_users.application.mapper.request.EmployeeRequestMapper;
 import com.pragma.challenge.msvc_users.application.mapper.request.UserRequestMapper;
 import com.pragma.challenge.msvc_users.application.mapper.response.UserResponseMapper;
 import com.pragma.challenge.msvc_users.domain.api.IUserServicePort;
@@ -20,7 +22,7 @@ public class UserHandlerImpl implements UserHandler {
     private final IUserServicePort userServicePort;
     private final UserRequestMapper userRequestMapper;
     private final UserResponseMapper userResponseMapper;
-
+    private final EmployeeRequestMapper employeeRequestMapper;
 
 
     @Override
@@ -36,6 +38,15 @@ public class UserHandlerImpl implements UserHandler {
         return IsOwnerResponse.builder()
                 .isOwner(userServicePort.isOwner(id))
                 .build();
+    }
+
+    @Override
+    public UserResponse createEmployee(EmployeeRequest employeeRequest) {
+        User user = employeeRequestMapper.toDomain(employeeRequest);
+
+        return userResponseMapper.toResponse(
+                userServicePort.createEmployee(user, employeeRequest.getRestaurantId())
+        );
     }
 
     @Override

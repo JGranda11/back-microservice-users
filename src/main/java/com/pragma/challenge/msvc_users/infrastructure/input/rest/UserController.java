@@ -1,5 +1,6 @@
 package com.pragma.challenge.msvc_users.infrastructure.input.rest;
 
+import com.pragma.challenge.msvc_users.application.dto.request.EmployeeRequest;
 import com.pragma.challenge.msvc_users.application.dto.request.UserRequest;
 import com.pragma.challenge.msvc_users.application.dto.response.IsOwnerResponse;
 import com.pragma.challenge.msvc_users.application.dto.response.UserResponse;
@@ -50,6 +51,11 @@ public class UserController {
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(userHandler.createOwner(owner));
+    }
+
+    @PostMapping("/employees")
+    public ResponseEntity<UserResponse> createEmployee(@RequestBody @Valid EmployeeRequest employeeRequest){
+        return ResponseEntity.status(HttpStatus.CREATED).body(userHandler.createEmployee(employeeRequest));
     }
 
     @Operation(

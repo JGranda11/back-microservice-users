@@ -3,11 +3,13 @@ package com.pragma.challenge.msvc_users.domain.usecase;
 import com.pragma.challenge.msvc_users.domain.api.IUserServicePort;
 import com.pragma.challenge.msvc_users.domain.exception.EntityAlreadyExistsException;
 import com.pragma.challenge.msvc_users.domain.exception.EntityNotFoundException;
+import com.pragma.challenge.msvc_users.domain.exception.ErrorRegisteringEmployeeException;
 import com.pragma.challenge.msvc_users.domain.exception.UnderAgedUserException;
 import com.pragma.challenge.msvc_users.domain.model.Role;
 import com.pragma.challenge.msvc_users.domain.model.User;
 import com.pragma.challenge.msvc_users.domain.spi.IRolePersistencePort;
 import com.pragma.challenge.msvc_users.domain.spi.IUserPersistencePort;
+import com.pragma.challenge.msvc_users.domain.spi.RestaurantPersistencePort;
 import com.pragma.challenge.msvc_users.domain.spi.security.IPasswordEncoderPort;
 import com.pragma.challenge.msvc_users.domain.util.enums.RoleName;
 
@@ -19,11 +21,13 @@ public class UserUseCase implements IUserServicePort {
     private final IUserPersistencePort userPersistencePort;
     private final IRolePersistencePort rolePersistencePort;
     private final IPasswordEncoderPort passwordEncoderPort;
+    private final RestaurantPersistencePort restaurantPersistencePort;
 
-    public UserUseCase(IUserPersistencePort userPersistencePort, IRolePersistencePort rolePersistencePort, IPasswordEncoderPort passwordEncoderPort) {
+    public UserUseCase(IUserPersistencePort userPersistencePort, IRolePersistencePort rolePersistencePort, IPasswordEncoderPort passwordEncoderPort, RestaurantPersistencePort restaurantPersistencePort) {
         this.userPersistencePort = userPersistencePort;
         this.rolePersistencePort = rolePersistencePort;
         this.passwordEncoderPort = passwordEncoderPort;
+        this.restaurantPersistencePort = restaurantPersistencePort;
     }
 
     @Override
@@ -41,8 +45,18 @@ public class UserUseCase implements IUserServicePort {
     @Override
     public User createEmployee(User user, Long restaurantId) {
         User savedUser = saveUser(user, RoleName.EMPLOYEE);
-        //restaurante puerto
-        return null;
+        registerInRestaurant(user, restaurantId);
+
+        return savedUser;
+    }
+
+    private void registerInRestaurant(User user, Long restaurantId){
+        try{
+            restaurantPersistencePort.registerEmployeeInRestaurant(user, restaurantId);
+        } catch (Exception e){
+            userPersistencePort.deletedById(user.getId());
+            throw new ErrorRegisteringEmployeeException();
+        }
     }
 
     @Override
