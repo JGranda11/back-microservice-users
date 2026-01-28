@@ -43,7 +43,7 @@ public class SecurityConfig {
             // Authentication
             "/v1/home",
             "/v1/auth/**",
-            "/v1/users/customers"
+
     };
 
     @Bean
@@ -53,6 +53,7 @@ public class SecurityConfig {
                 .cors(config -> config.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> {
                     auth.requestMatchers(AUTH_WHITELIST).permitAll();
+                    auth.requestMatchers("/v1/auth/**");
                     auth.anyRequest().authenticated();
                 })
                 .sessionManagement(session ->

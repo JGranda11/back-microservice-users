@@ -1,6 +1,7 @@
 package com.pragma.challenge.msvc_users.infrastructure.configuration.security.filter;
 
 import com.pragma.challenge.msvc_users.domain.api.security.TokenServicePort;
+import com.pragma.challenge.msvc_users.domain.util.TokenHolder;
 import com.pragma.challenge.msvc_users.infrastructure.util.ConfigurationConstants;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -39,7 +40,7 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
         Long username = tokenServicePort.getUsername(token);
 
         setContextAuthentication(request, token, String.valueOf(username));
-
+        TokenHolder.setToken(authorizationHeader);
         filterChain.doFilter(request, response);
 
     }

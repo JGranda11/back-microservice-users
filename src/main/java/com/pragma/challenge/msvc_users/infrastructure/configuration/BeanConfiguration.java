@@ -6,6 +6,7 @@ import com.pragma.challenge.msvc_users.domain.api.security.TokenServicePort;
 import com.pragma.challenge.msvc_users.domain.model.User;
 import com.pragma.challenge.msvc_users.domain.spi.IRolePersistencePort;
 import com.pragma.challenge.msvc_users.domain.spi.IUserPersistencePort;
+import com.pragma.challenge.msvc_users.domain.spi.RestaurantPersistencePort;
 import com.pragma.challenge.msvc_users.domain.spi.security.AuthenticationSecurityPort;
 import com.pragma.challenge.msvc_users.domain.spi.security.IPasswordEncoderPort;
 import com.pragma.challenge.msvc_users.domain.spi.security.TokenSecurityPort;
@@ -33,10 +34,13 @@ public class BeanConfiguration {
     @Bean
      public IUserServicePort userServicePort(IUserPersistencePort userPersistencePort,
                                              IRolePersistencePort rolePersistencePort,
-                                             IPasswordEncoderPort passwordEncoderPort){
+                                             IPasswordEncoderPort passwordEncoderPort,
+                                             RestaurantPersistencePort restaurantPersistencePort){
         return new UserUseCase(userPersistencePort,
                 rolePersistencePort,
-                passwordEncoderPort);
+                passwordEncoderPort,
+                restaurantPersistencePort
+                );
     }
 
     @Bean
