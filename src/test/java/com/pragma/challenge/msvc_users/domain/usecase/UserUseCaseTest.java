@@ -52,13 +52,13 @@ public class UserUseCaseTest {
     public static final String USER_EMAIL = "juan@example.com";
     public static final String USER_PASSWORD = "password";
     public static final LocalDate USER_BIRTHDATE = LocalDate.now().minusYears(25);
-    public static final Long ROLE_ID = 3L;
+    public static final Long ROLE_ID = 2L;
     public static final RoleName ROLE_NAME = RoleName.OWNER;
     public static final String ROLE_DESCRIPTION = "Restaurant owner";
     public static final Long RESTAURANT_ID = 5L;
 
-    private final Role ownerRole = Role.builder()
-            .id(2L)
+    private final Role role = Role.builder()
+            .id(ROLE_ID)
             .name(RoleName.OWNER)
             .description(ROLE_DESCRIPTION)
             .build();
@@ -73,7 +73,7 @@ public class UserUseCaseTest {
             .password(USER_PASSWORD)
             .build();
 
-    private final User savedUser = User.builder()
+    private final User expectedUser = User.builder()
             .id(USER_ID)
             .name(USER_NAME)
             .lastname(USER_LASTNAME)
@@ -82,7 +82,7 @@ public class UserUseCaseTest {
             .birthdate(USER_BIRTHDATE)
             .email(USER_EMAIL)
             .password(USER_PASSWORD)
-            .role(ownerRole)
+            .role(role)
             .build();
 
 
@@ -92,8 +92,8 @@ public class UserUseCaseTest {
         // Arrange
         when(userPersistencePort.findByEmail(USER_EMAIL)).thenReturn(null);
         when(userPersistencePort.findByIdentityDocument(USER_IDENTITY_DOCUMENT)).thenReturn(null);
-        when(userPersistencePort.saveUser(any(User.class))).thenReturn(savedUser);
-        when(rolePersistencePort.findByName(any())).thenReturn(ownerRole);
+        when(userPersistencePort.saveUser(any(User.class))).thenReturn(expectedUser);
+        when(rolePersistencePort.findByName(any())).thenReturn(role);
         when(passwordEncoderPort.encode(any(String.class)))
                 .thenReturn("encrypted-password");
 
@@ -117,17 +117,17 @@ public class UserUseCaseTest {
 
     @Test
     void createUser_EmailAlreadyExists(){
-        when(rolePersistencePort.findByName(any())).thenReturn(ownerRole);
-        when(userPersistencePort.findByEmail(USER_EMAIL)).thenReturn(savedUser);
+        when(rolePersistencePort.findByName(any())).thenReturn(role);
+        when(userPersistencePort.findByEmail(USER_EMAIL)).thenReturn(expectedUser);
 
         assertThrows(EntityAlreadyExistsException.class, () -> userUseCase.createOwner(user));
     }
 
     @Test
     void createOwner_identityDocumentAlreadyExists() {
-        when(rolePersistencePort.findByName(RoleName.OWNER)).thenReturn(ownerRole);
+        when(rolePersistencePort.findByName(RoleName.OWNER)).thenReturn(role);
         when(userPersistencePort.findByIdentityDocument(USER_IDENTITY_DOCUMENT))
-                .thenReturn(savedUser);
+                .thenReturn(expectedUser);
 
         assertThrows(EntityAlreadyExistsException.class,
                 () -> userUseCase.createOwner(user));
@@ -135,7 +135,7 @@ public class UserUseCaseTest {
 
     @Test
     void isOwner(){
-        when(userPersistencePort.findById(USER_ID)).thenReturn(savedUser);
+        when(userPersistencePort.findById(USER_ID)).thenReturn(expectedUser);
 
         boolean isOwner = userUseCase.isOwner(USER_ID);
 
@@ -155,7 +155,7 @@ public class UserUseCaseTest {
                 .password(USER_PASSWORD)
                 .build();
 
-        when(rolePersistencePort.findByName(RoleName.OWNER)).thenReturn(ownerRole);
+        when(rolePersistencePort.findByName(RoleName.OWNER)).thenReturn(role);
         when(userPersistencePort.findByEmail(USER_EMAIL)).thenReturn(null);
         when(userPersistencePort.findByIdentityDocument(USER_IDENTITY_DOCUMENT)).thenReturn(null);
 
@@ -218,4 +218,23 @@ public class UserUseCaseTest {
         verify(userPersistencePort).deletedById(USER_ID);
     }
 
+    @Test
+    void createCustomer() {
+        Role customerRole = Role.builder().id(2L).name(RoleName.CUSTOMER).build();
+        expectedUser.setRole(customerRole);
+
+        when(userPersistencePort.findByEmail(USER_EMAIL)).thenReturn(null);
+        when(userPersistencePort.findByIdentityDocument(USER_IDENTITY_DOCUMENT)).thenReturn(null);
+        when(userPersistencePort.saveUser(any(User.class))).thenReturn(expectedUser);
+        when(rolePersistencePort.findByName(any())).thenReturn(role);
+
+        // Act
+        User savedUser = userUseCase.createCustomer(user);
+
+        verify(userPersistencePort).findByEmail(USER_EMAIL);
+        verify(userPersistencePort).findByIdentityDocument(USER_IDENTITY_DOCUMENT);
+        verify(userPersistencePort).saveUser(any(User.class));
+        assertEquals(customerRole.getName(), savedUser.getRole().getName());
+        assertEquals(USER_EMAIL, savedUser.getEmail());
+    }
 }

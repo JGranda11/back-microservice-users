@@ -25,7 +25,7 @@ public class AuthenticationController {
 
     private final AuthenticationHandler authenticationHandler;
 
-    @Operation(summary = "Create an owner using the given valid info" )
+    @Operation(summary = "Creates a token if credentials are right" )
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "202",
