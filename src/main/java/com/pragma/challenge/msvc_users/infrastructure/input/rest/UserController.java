@@ -5,6 +5,8 @@ import com.pragma.challenge.msvc_users.application.dto.request.UserRequest;
 import com.pragma.challenge.msvc_users.application.dto.response.IsOwnerResponse;
 import com.pragma.challenge.msvc_users.application.dto.response.UserResponse;
 import com.pragma.challenge.msvc_users.application.handler.UserHandler;
+import com.pragma.challenge.msvc_users.infrastructure.configuration.advisor.response.ExceptionResponse;
+import com.pragma.challenge.msvc_users.infrastructure.configuration.advisor.response.ValidationExceptionResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -53,6 +55,36 @@ public class UserController {
                 .body(userHandler.createOwner(owner));
     }
 
+
+    @Operation(summary = "Create an employee using the given valid info")
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "201",
+                    description = "Employee has been created successfully",
+                    content =  @Content(schema = @Schema(implementation = UserResponse.class))
+            ),
+            @ApiResponse(
+                    responseCode = "409",
+                    description = "An user with that email already exists",
+                    content =  @Content(schema = @Schema(implementation = ExceptionResponse.class))
+            ),
+            @ApiResponse(
+                    responseCode = "409",
+                    description = "An user with that identity document already exists",
+                    content =  @Content(schema = @Schema(implementation = ExceptionResponse.class))
+            ),
+            @ApiResponse(
+                    responseCode = "409",
+                    description = "Given user is under aged",
+                    content =  @Content(schema = @Schema(implementation = ExceptionResponse.class))
+            ),
+
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Validations don't pass",
+                    content =  @Content(schema = @Schema(implementation = ValidationExceptionResponse.class))
+            ),
+    })
     @PostMapping("/employees")
     public ResponseEntity<UserResponse> createEmployee(@RequestBody @Valid EmployeeRequest employeeRequest){
         return ResponseEntity.status(HttpStatus.CREATED).body(userHandler.createEmployee(employeeRequest));

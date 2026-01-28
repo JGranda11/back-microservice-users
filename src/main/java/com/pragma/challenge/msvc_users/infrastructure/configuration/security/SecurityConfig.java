@@ -53,7 +53,8 @@ public class SecurityConfig {
                 .cors(config -> config.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> {
                     auth.requestMatchers(AUTH_WHITELIST).permitAll();
-                    auth.requestMatchers("/v1/auth/**");
+                    auth.requestMatchers("/v1/auth/**").permitAll();
+                    auth.requestMatchers("/v1/users/customers").permitAll();
                     auth.anyRequest().authenticated();
                 })
                 .sessionManagement(session ->
@@ -72,7 +73,7 @@ public class SecurityConfig {
         configuration.setAllowCredentials(true);
         configuration.addAllowedHeader("*");
         configuration.setAllowedOrigins(allowedOrigins);
-        configuration.setAllowedMethods(List.of("POST", "GET", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedMethods(List.of("PATCH", "POST", "GET", "PUT", "DELETE", "OPTIONS"));
         source.registerCorsConfiguration("/**", configuration);
         return source;
     }
