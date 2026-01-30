@@ -45,7 +45,7 @@ public class UserUseCase implements IUserServicePort {
     @Override
     public User createEmployee(User user, Long restaurantId) {
         User savedUser = saveUser(user, RoleName.EMPLOYEE);
-        registerInRestaurant(user, restaurantId);
+        registerInRestaurant(savedUser, restaurantId);
 
         return savedUser;
     }
@@ -54,6 +54,7 @@ public class UserUseCase implements IUserServicePort {
         try{
             restaurantPersistencePort.registerEmployeeInRestaurant(user, restaurantId);
         } catch (Exception e){
+            e.printStackTrace();
             userPersistencePort.deletedById(user.getId());
             throw new ErrorRegisteringEmployeeException();
         }
