@@ -85,6 +85,7 @@ public class UserController {
                     content =  @Content(schema = @Schema(implementation = ValidationExceptionResponse.class))
             ),
     })
+    @PreAuthorize("hasAnyRole('OWNER')")
     @PostMapping("/employees")
     public ResponseEntity<UserResponse> createEmployee(@RequestBody @Valid EmployeeRequest employeeRequest){
         return ResponseEntity.status(HttpStatus.CREATED).body(userHandler.createEmployee(employeeRequest));
